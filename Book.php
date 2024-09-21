@@ -9,6 +9,19 @@ class Book {
         $this->author = $author;
         $this->year = $year;
     }
+    public function setTitle($title) {
+        $this->title = $title;
+    }
+
+    public function setAuthor($author) {
+        $this->author =  $author;
+
+    }
+
+    public function setYear($year) {
+        $this->year  = $year;
+
+    }
 
     public function getTitle() {
         return $this->title;
