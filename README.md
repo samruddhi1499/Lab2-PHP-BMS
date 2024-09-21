@@ -9,7 +9,7 @@ This is a simple PHP-based Book Management System that allows users to add book 
 - Error messages for incomplete or invalid submissions.
 
 ## How to Run
-1. Clone the repository.
+1. Clone the repository (`https://github.com/samruddhi1499/Lab2-PHP-BMS.git`)
 2. Place the files in your server's root directory (e.g., `htdocs` for XAMPP).
 3. Access `book-management-system.php` via your local server in a browser (e.g., `http://localhost/Lab2-PHP-BMS/book-management-system.php`).
 
