@@ -1,48 +1,59 @@
 <?php
-require_once 'Book.php';
+// using requre to make use of Book.php
+require 'Book.php';
+
+// using session _start to start the session
+// using session to persist data in books  array.
+// observed without  session, the data is lost after php script is executed again
 
 session_start();
 if (!isset($_SESSION['books'])) {
     $_SESSION['books'] = [];
 }
 
+
+$errors = [];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // if action is reset the data is deleted from array by ressting the session
     if (isset($_POST['reset'])) {
         session_unset();
         session_destroy();
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
-    } else {
-        $title = $_POST['title'];
-        $author = $_POST['author'];
-        $year = $_POST['year'];
+    } else { // else checking the form input
+        $title = $_POST['title'] ?? '';
+        $author = $_POST['author'] ?? '';
+        $year = $_POST['year'] ?? '';
 
         try {
+            // using regex to validate the entered input
             if (empty($title) || empty($author) || empty($year)) {
-                throw new Exception("All fields are required.");
+                $errors[] = "All fields are required.";
             }
-            if (!preg_match("/^[a-zA-Z0-9\s]+$/", $title)) {
-                throw new Exception("Invalid book title.");
+            if (!preg_match("/^[a-zA-Z0-9\s\.\:\"\?\'\-]+$/", $title)) {
+                $errors[] = "Invalid book title.";
             }
-            if (!preg_match("/^[a-zA-Z\s]+$/", $author)) {
-                throw new Exception("Invalid author name.");
+            if (!preg_match("/^[a-zA-Z\s\.]+$/", $author)) {
+                $errors[] = "Invalid author name.";
             }
             if (!preg_match("/^[0-9]{4}$/", $year)) {
-                throw new Exception("Invalid year.");
+                $errors[] = "Invalid year.";
             }
 
-            $book = new Book($title, $author, $year);
-            $_SESSION['books'][] = $book;
-
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit;
-
+            if (empty($errors)) {
+                $book = new Book($title, $author, $year);
+                $_SESSION['books'][] = $book;
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
         } catch (Exception $e) {
-            echo "<p style='color:red;'>" . $e->getMessage() . "</p>";
+            $errors[] = $e->getMessage();
         }
     }
 }
 
+// displaying the books detail stored in array using for each loop in html table
 function displayBooks($books) {
     if (count($books) > 0) {
         echo "<table border='1' style='width:100%; border-collapse: collapse;'>";
@@ -131,6 +142,10 @@ function displayBooks($books) {
         input[type="submit"]:hover {
             background-color: #77cbda;
         }
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -158,11 +173,18 @@ function displayBooks($books) {
             <h2>Add a New Book</h2>
             <form method="post">
                 <label>Book Title:</label>
-                <input type="text" name="title" required>
+                <input type="text" name="title" value="<?php echo htmlspecialchars($title ?? ''); ?>" required>
+                <?php if (in_array("Invalid book title.", $errors)) echo "<div class='error'>Invalid book title.</div>"; ?>
+                <?php if (in_array("All fields are required.", $errors)) echo "<div class='error'>All fields are required.</div>"; ?>
+
                 <label>Author:</label>
-                <input type="text" name="author" required>
+                <input type="text" name="author" value="<?php echo htmlspecialchars($author ?? ''); ?>" required>
+                <?php if (in_array("Invalid author name.", $errors)) echo "<div class='error'>Invalid author name.</div>"; ?>
+
                 <label>Year:</label>
-                <input type="number" name="year" required>
+                <input type="number" name="year" value="<?php echo htmlspecialchars($year ?? ''); ?>" required>
+                <?php if (in_array("Invalid year.", $errors)) echo "<div class='error'>Invalid year.</div>"; ?>
+
                 <input type="submit" value="Add Book">
             </form>
 
@@ -174,7 +196,10 @@ function displayBooks($books) {
 
         <div class="table-container">
             <h2>List of Books</h2>
-            <?php displayBooks($_SESSION['books']); ?>
+            <?php 
+            // calling displayBooks function
+            displayBooks($_SESSION['books']); 
+            ?>
         </div>
     </div>
 </body>
